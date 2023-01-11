@@ -6,6 +6,7 @@ const {
   resetValidator,
   forgetValidator,
   confirmUserValidator,
+  registerValidator,
 } = require("./validator");
 
 const { checkValidation } = require("../../middlewares/validator");
@@ -14,8 +15,10 @@ serviceRouter.post("/login", [loginValidator, checkValidation], (req, res) =>
   routes["apiRoute"](req, res, "authLogin")
 );
 
-serviceRouter.post("/register", [loginValidator, checkValidation], (req, res) =>
-  routes["apiRoute"](req, res, "register")
+serviceRouter.post(
+  "/register",
+  [registerValidator, checkValidation],
+  (req, res) => routes["apiRoute"](req, res, "createAdmin")
 );
 serviceRouter.post(
   "/resetPassword",
