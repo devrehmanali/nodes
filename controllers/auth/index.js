@@ -1,10 +1,13 @@
 const {
   findUserByEmail,
   changeUserPassword,
+  createUserAccount,
+  deleteUserAccount,
 } = require("../../libs/helpers/user");
 const {
   ForgotPasswordEmail,
   PasswordSuccessfullyResetEmail,
+  SendInvitationEmail,
 } = require("../../libs/shared/mailer");
 const { decryptData } = require("../../libs/shared/encryption");
 const {
@@ -12,6 +15,10 @@ const {
   HttpStatusCode,
   GenericMessages,
 } = require("../../constants");
+const { checkNullString } = require("../../libs/shared/utils/parser");
+const { createRole } = require("../../libs/shared/role");
+const { capitalize } = require("lodash");
+const { AdminMessages } = require("../../constants");
 
 /**
  * @Route Post /auth
@@ -59,6 +66,63 @@ exports.authLogin = (req) => {
     })();
   });
 };
+
+exports.createAdmin = async (req) => {
+  return new Promise((resolve, reject) => {
+    try {
+      (async () => {
+        createUserAccount(
+          {
+            firstName: req.body.firstName,
+            lastName: req.body.lastName,
+            email: req.body.email,
+            role: req.body.role,
+            mobile: checkNullString(req.body.contact),
+            walletAddress: checkNullString(req.body.walletAddress),
+            enabled: req.body.enabled || true,
+            parentId: null,
+          },
+          req.body
+        )
+          .then(async (res) => {
+            const roleRes = await createRole(req, req.body.role, res.data._id);
+            if (roleRes && roleRes.code === HttpStatusCode.OK) {
+              await SendInvitationEmail(res.data);
+              return resolve({
+                ...res,
+                data: res.data.toProfile(),
+                message:
+                  capitalize(req.body.role) + AdminMessages.ACCOUNT_CREATED,
+              });
+            }
+            await deleteUserAccount(res.data.id);
+            return resolve({
+              ...res,
+              message:
+                roleToCreate === "admin"
+                  ? AdminMessages.ADMIN_ACCOUNT_NOT_CREATED
+                  : AdminMessages.USER_ACCOUNT_NOT_CREATED,
+            });
+          })
+          .catch((err) => {
+            return reject({
+              ...err,
+              message:
+                req.body.role === "admin"
+                  ? AdminMessages.ADMIN_ACCOUNT_NOT_CREATED
+                  : AdminMessages.USER_ACCOUNT_NOT_CREATED,
+            });
+          });
+      })();
+    } catch (error) {
+      return reject({
+        code: HttpStatusCode.INTERNAL_SERVER_ERROR,
+        message: GenericMessages.INTERNAL_SERVER_ERROR,
+      });
+    }
+  });
+};
+
 /**
  * @Route Post /auth/forgetPassword
  * @dev User forget password.

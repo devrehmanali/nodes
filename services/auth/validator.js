@@ -9,11 +9,36 @@ const emailValidator = check("email")
   .notEmpty()
   .withMessage(ValidationMessages.EMAIL_REQUIRED);
 
+const firstNameValidator = check("firstName")
+  .trim()
+  .toLowerCase()
+  .notEmpty()
+  .withMessage("First name is required!");
+
+const lastNameValidator = check("lastName")
+  .trim()
+  .toLowerCase()
+  .notEmpty()
+  .withMessage("Last name is required!");
+
+const mobileValidator = check("contact")
+  .trim()
+  .notEmpty()
+  .withMessage("Contact is required!")
+  .isNumeric()
+  .withMessage("Only numbers are allowed!");
+
 const passwordValidator = check("password")
   .trim()
   .escape()
   .notEmpty()
   .withMessage(ValidationMessages.PASSWORD_REQUIRED);
+
+const roleValidator = check("role")
+  .trim()
+  .toLowerCase()
+  .notEmpty()
+  .withMessage("User role is required!");
 
 const validateTokenAndSetPasswordValiditor = [
   check("token")
@@ -44,6 +69,15 @@ const validateTokenAndSetPasswordValiditor = [
  * Login fields
  */
 exports.loginValidator = [emailValidator, passwordValidator];
+
+exports.registerValidator = [
+  firstNameValidator,
+  lastNameValidator,
+  emailValidator,
+  mobileValidator,
+  passwordValidator,
+  roleValidator,
+];
 
 /**
  * Forget passward fields
