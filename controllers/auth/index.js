@@ -14,11 +14,13 @@ const {
   AuthMessages,
   HttpStatusCode,
   GenericMessages,
+  UserMessages,
 } = require("../../constants");
 const { checkNullString } = require("../../libs/shared/utils/parser");
 const { createRole } = require("../../libs/shared/role");
 const { capitalize } = require("lodash");
 const { AdminMessages } = require("../../constants");
+const User = require("../../models/User");
 
 /**
  * @Route Post /auth
@@ -71,6 +73,13 @@ exports.createAdmin = async (req) => {
   return new Promise((resolve, reject) => {
     try {
       (async () => {
+        const checkEmailExists = await User.findOne({ email: req.body.email });
+        if (checkEmailExists) {
+          return resolve({
+            code: HttpStatusCode.BAD_REQUEST,
+            message: "Email already exists",
+          });
+        }
         createUserAccount(
           {
             firstName: req.body.firstName,
@@ -78,22 +87,28 @@ exports.createAdmin = async (req) => {
             email: req.body.email,
             role: req.body.role,
             mobile: checkNullString(req.body.contact),
-            walletAddress: checkNullString(req.body.walletAddress),
             enabled: req.body.enabled || true,
             parentId: null,
           },
           req.body
         )
           .then(async (res) => {
-            const roleRes = await createRole(req, req.body.role, res.data._id);
-            if (roleRes && roleRes.code === HttpStatusCode.OK) {
-              await SendInvitationEmail(res.data);
-              return resolve({
-                ...res,
-                data: res.data.toProfile(),
-                message:
-                  capitalize(req.body.role) + AdminMessages.ACCOUNT_CREATED,
-              });
+            if (res?.code === HttpStatusCode.OK) {
+              const roleRes = await createRole(
+                req,
+                req.body.role,
+                res.data._id
+              );
+              console.log(roleRes, "5454545454545454");
+              if (roleRes && roleRes.code === HttpStatusCode.OK) {
+                await SendInvitationEmail(res.data);
+                return resolve({
+                  ...res,
+                  data: res.data.toProfile(),
+                  message:
+                    capitalize(req.body.role) + AdminMessages.ACCOUNT_CREATED,
+                });
+              }
             }
             await deleteUserAccount(res.data.id);
             return resolve({

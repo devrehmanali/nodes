@@ -15,7 +15,6 @@ const UserSchema = new Schema(
     email: { type: String, unique: true, default: "" },
     dob: { type: String, default: "" },
     address: { type: String, default: "" },
-    walletAddress: { type: String, default: "" },
     google2faEnabled: { type: Boolean, default: false },
     google2faSecret: { type: String, default: "" },
     role: { type: String, default: "user" },

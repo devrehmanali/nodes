@@ -53,6 +53,7 @@ exports.createRole = (req, roleToAss, userId) => {
           parentId: null,
           userId: userId,
         });
+        console.log(exist, "KOKOKKOKOKOKO");
         if (exist) {
           return resolve({
             code: 400,
@@ -61,9 +62,10 @@ exports.createRole = (req, roleToAss, userId) => {
         } else {
           const role = await Role.create({
             title: roleToAss,
-            parentId: req.jwt.id,
+            parentId: null,
             userId: userId,
           });
+          console.log(role, "MKMKMKMKMKMK");
           if (role) {
             return resolve({
               code: 200,
