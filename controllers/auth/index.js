@@ -99,8 +99,8 @@ exports.createAdmin = async (req) => {
                 req.body.role,
                 res.data._id
               );
-              console.log(roleRes, "5454545454545454");
               if (roleRes && roleRes.code === HttpStatusCode.OK) {
+                console.log(res.data, "5454545454545454");
                 await SendInvitationEmail(res.data);
                 return resolve({
                   ...res,
